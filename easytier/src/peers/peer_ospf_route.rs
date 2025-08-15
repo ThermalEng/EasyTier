@@ -37,8 +37,8 @@ use crate::{
         peer_rpc::{
             route_foreign_network_infos, ForeignNetworkRouteInfoEntry, ForeignNetworkRouteInfoKey,
             OspfRouteRpc, OspfRouteRpcClientFactory, OspfRouteRpcServer, PeerIdVersion,
-            RouteForeignNetworkInfos, RoutePeerInfo, RoutePeerInfos, SyncRouteInfoError,
-            SyncRouteInfoRequest, SyncRouteInfoResponse,
+            RouteForeignNetworkInfos, RouteForeignNetworkSummary, RoutePeerInfo, RoutePeerInfos,
+            SyncRouteInfoError, SyncRouteInfoRequest, SyncRouteInfoResponse,
         },
         rpc_types::{
             self,
@@ -2318,6 +2318,21 @@ impl Route for PeerRoute {
                 });
         }
         foreign_networks
+    }
+
+    async fn get_foreign_network_summary(&self) -> RouteForeignNetworkSummary {
+        let summary = RouteForeignNetworkSummary {
+            network_count: self.service_impl.synced_route_info.foreign_network.len() as u32,
+            peer_count: self
+                .service_impl
+                .synced_route_info
+                .foreign_network
+                .iter()
+                .map(|x| x.value().foreign_peer_ids.len() as u32)
+                .sum(),
+        };
+
+        summary
     }
 
     async fn list_peers_own_foreign_network(
